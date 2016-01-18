@@ -414,6 +414,16 @@ func (svg *SVG) Textpath(t string, pathid string, s ...string) {
 	svg.Println(`</textPath></text>`)
 }
 
+// TextStart creates opening text tag.
+func (svg *SVG) TextStart(x, y int, s ...string) {
+	svg.Printf(`<text %s %s`, loc(x, y), endstyle(s, `>`))
+}
+
+// TextEnd creates closing text tag.
+func (svg *SVG) TextEnd() {
+	svg.Printf(`</text>`)
+}
+
 // Textlines places a series of lines of text starting at x,y, at the specified size, fill, and alignment.
 // Each line is spaced according to the spacing argument
 func (svg *SVG) Textlines(x, y int, s []string, size, spacing int, fill, align string) {
