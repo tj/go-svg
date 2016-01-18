@@ -64,23 +64,23 @@ const (
 // New is the SVG constructor, specifying the io.Writer where the generated SVG is written.
 func New(w io.Writer) *SVG { return &SVG{w} }
 
-func (svg *SVG) print(a ...interface{}) (n int, errno error) {
+func (svg *SVG) Print(a ...interface{}) (n int, errno error) {
 	return fmt.Fprint(svg.Writer, a...)
 }
 
-func (svg *SVG) println(a ...interface{}) (n int, errno error) {
+func (svg *SVG) Println(a ...interface{}) (n int, errno error) {
 	return fmt.Fprintln(svg.Writer, a...)
 }
 
-func (svg *SVG) printf(format string, a ...interface{}) (n int, errno error) {
+func (svg *SVG) Printf(format string, a ...interface{}) (n int, errno error) {
 	return fmt.Fprintf(svg.Writer, format, a...)
 }
 
 func (svg *SVG) genattr(ns []string) {
 	for _, v := range ns {
-		svg.printf("\n     %s", v)
+		svg.Printf("\n     %s", v)
 	}
-	svg.println(svgns)
+	svg.Println(svgns)
 }
 
 // Structure, Metadata, Scripting, Transformation, and Links
@@ -89,21 +89,21 @@ func (svg *SVG) genattr(ns []string) {
 // Other attributes may be optionally added, for example viewbox or additional namespaces
 // Standard Reference: http://www.w3.org/TR/SVG11/struct.html#SVGElement
 func (svg *SVG) Start(w int, h int, ns ...string) {
-	svg.printf(svginitfmt, svgtop, w, "", h, "")
+	svg.Printf(svginitfmt, svgtop, w, "", h, "")
 	svg.genattr(ns)
 }
 
 // Startunit begins the SVG document, with width and height in the specified units
 // Other attributes may be optionally added, for example viewbox or additional namespaces
 func (svg *SVG) Startunit(w int, h int, unit string, ns ...string) {
-	svg.printf(svginitfmt, svgtop, w, unit, h, unit)
+	svg.Printf(svginitfmt, svgtop, w, unit, h, unit)
 	svg.genattr(ns)
 }
 
 // Startpercent begins the SVG document, with width and height as percentages
 // Other attributes may be optionally added, for example viewbox or additional namespaces
 func (svg *SVG) Startpercent(w int, h int, ns ...string) {
-	svg.printf(svginitfmt, svgtop, w, "%", h, "%")
+	svg.Printf(svginitfmt, svgtop, w, "%", h, "%")
 	svg.genattr(ns)
 }
 
@@ -119,42 +119,42 @@ func (svg *SVG) StartviewUnit(w, h int, unit string, minx, miny, vw, vh int) {
 
 // Startraw begins the SVG document, passing arbitrary attributes
 func (svg *SVG) Startraw(ns ...string) {
-	svg.printf(svgtop)
+	svg.Printf(svgtop)
 	svg.genattr(ns)
 }
 
 // End the SVG document
-func (svg *SVG) End() { svg.println("</svg>") }
+func (svg *SVG) End() { svg.Println("</svg>") }
 
 // Script defines a script with a specified type, (for example "application/javascript").
 // if the first variadic argument is a link, use only the link reference.
 // Otherwise, treat those arguments as the text of the script (marked up as CDATA).
 // if no data is specified, just close the script element
 func (svg *SVG) Script(scriptype string, data ...string) {
-	svg.printf(`<script type="%s"`, scriptype)
+	svg.Printf(`<script type="%s"`, scriptype)
 	switch {
 	case len(data) == 1 && islink(data[0]):
-		svg.printf(" %s/>\n", href(data[0]))
+		svg.Printf(" %s/>\n", href(data[0]))
 
 	case len(data) > 0:
-		svg.printf(">\n<![CDATA[\n")
+		svg.Printf(">\n<![CDATA[\n")
 		for _, v := range data {
-			svg.println(v)
+			svg.Println(v)
 		}
-		svg.printf("]]>\n</script>\n")
+		svg.Printf("]]>\n</script>\n")
 
 	default:
-		svg.println(`/>`)
+		svg.Println(`/>`)
 	}
 }
 
 // Gstyle begins a group, with the specified style.
 // Standard Reference: http://www.w3.org/TR/SVG11/struct.html#GElement
-func (svg *SVG) Gstyle(s string) { svg.println(group("style", s)) }
+func (svg *SVG) Gstyle(s string) { svg.Println(group("style", s)) }
 
 // Gtransform begins a group, with the specified transform
 // Standard Reference: http://www.w3.org/TR/SVG11/coords.html#TransformAttribute
-func (svg *SVG) Gtransform(s string) { svg.println(group("transform", s)) }
+func (svg *SVG) Gtransform(s string) { svg.Println(group("transform", s)) }
 
 // Translate begins coordinate translation, end with Gend()
 // Standard Reference: http://www.w3.org/TR/SVG11/coords.html#TransformAttribute
@@ -195,42 +195,42 @@ func (svg *SVG) RotateTranslate(x, y int, r float64) {
 }
 
 // Group begins a group with arbitrary attributes
-func (svg *SVG) Group(s ...string) { svg.printf("<g %s\n", endstyle(s, `>`)) }
+func (svg *SVG) Group(s ...string) { svg.Printf("<g %s\n", endstyle(s, `>`)) }
 
 // Gid begins a group, with the specified id
 func (svg *SVG) Gid(s string) {
-	svg.print(`<g id="`)
+	svg.Print(`<g id="`)
 	xml.Escape(svg.Writer, []byte(s))
-	svg.println(`">`)
+	svg.Println(`">`)
 }
 
 // Gend ends a group (must be paired with Gsttyle, Gtransform, Gid).
-func (svg *SVG) Gend() { svg.println(`</g>`) }
+func (svg *SVG) Gend() { svg.Println(`</g>`) }
 
 // ClipPath defines a clip path
-func (svg *SVG) ClipPath(s ...string) { svg.printf(`<clipPath %s`, endstyle(s, `>`)) }
+func (svg *SVG) ClipPath(s ...string) { svg.Printf(`<clipPath %s`, endstyle(s, `>`)) }
 
 // ClipEnd ends a ClipPath
 func (svg *SVG) ClipEnd() {
-	svg.println(`</clipPath>`)
+	svg.Println(`</clipPath>`)
 }
 
 // Def begins a defintion block.
 // Standard Reference: http://www.w3.org/TR/SVG11/struct.html#DefsElement
-func (svg *SVG) Def() { svg.println(`<defs>`) }
+func (svg *SVG) Def() { svg.Println(`<defs>`) }
 
 // DefEnd ends a defintion block.
-func (svg *SVG) DefEnd() { svg.println(`</defs>`) }
+func (svg *SVG) DefEnd() { svg.Println(`</defs>`) }
 
 // Marker defines a marker
 // Standard reference: http://www.w3.org/TR/SVG11/painting.html#MarkerElement
 func (svg *SVG) Marker(id string, x, y, width, height int, s ...string) {
-	svg.printf(`<marker id="%s" refX="%d" refY="%d" markerWidth="%d" markerHeight="%d" %s`,
+	svg.Printf(`<marker id="%s" refX="%d" refY="%d" markerWidth="%d" markerHeight="%d" %s`,
 		id, x, y, width, height, endstyle(s, ">\n"))
 }
 
 // MarkEnd ends a marker
-func (svg *SVG) MarkerEnd() { svg.println(`</marker>`) }
+func (svg *SVG) MarkerEnd() { svg.Println(`</marker>`) }
 
 // Pattern defines a pattern with the specified dimensions.
 // The putype can be either "user" or "obj", which sets the patternUnits
@@ -241,12 +241,12 @@ func (svg *SVG) Pattern(id string, x, y, width, height int, putype string, s ...
 	if putype != "user" {
 		puattr = "objectBoundingBox"
 	}
-	svg.printf(`<pattern id="%s" x="%d" y="%d" width="%d" height="%d" patternUnits="%s" %s`,
+	svg.Printf(`<pattern id="%s" x="%d" y="%d" width="%d" height="%d" patternUnits="%s" %s`,
 		id, x, y, width, height, puattr, endstyle(s, ">\n"))
 }
 
 // PatternEnd ends a marker
-func (svg *SVG) PatternEnd() { svg.println(`</pattern>`) }
+func (svg *SVG) PatternEnd() { svg.Println(`</pattern>`) }
 
 // Desc specified the text of the description tag.
 // Standard Reference: http://www.w3.org/TR/SVG11/struct.html#DescElement
@@ -259,40 +259,40 @@ func (svg *SVG) Title(s string) { svg.tt("title", s) }
 // Link begins a link named "name", with the specified title.
 // Standard Reference: http://www.w3.org/TR/SVG11/linking.html#Links
 func (svg *SVG) Link(href string, title string) {
-	svg.printf("<a xlink:href=\"%s\" xlink:title=\"", href)
+	svg.Printf("<a xlink:href=\"%s\" xlink:title=\"", href)
 	xml.Escape(svg.Writer, []byte(title))
-	svg.println("\">")
+	svg.Println("\">")
 }
 
 // LinkEnd ends a link.
-func (svg *SVG) LinkEnd() { svg.println(`</a>`) }
+func (svg *SVG) LinkEnd() { svg.Println(`</a>`) }
 
 // Use places the object referenced at link at the location x, y, with optional style.
 // Standard Reference: http://www.w3.org/TR/SVG11/struct.html#UseElement
 func (svg *SVG) Use(x int, y int, link string, s ...string) {
-	svg.printf(`<use %s %s %s`, loc(x, y), href(link), endstyle(s, emptyclose))
+	svg.Printf(`<use %s %s %s`, loc(x, y), href(link), endstyle(s, emptyclose))
 }
 
 // Mask creates a mask with a specified id, dimension, and optional style.
 func (svg *SVG) Mask(id string, x int, y int, w int, h int, s ...string) {
-	svg.printf(`<mask id="%s" x="%d" y="%d" width="%d" height="%d" %s`, id, x, y, w, h, endstyle(s, `>`))
+	svg.Printf(`<mask id="%s" x="%d" y="%d" width="%d" height="%d" %s`, id, x, y, w, h, endstyle(s, `>`))
 }
 
 // MaskEnd ends a Mask.
-func (svg *SVG) MaskEnd() { svg.println(`</mask>`) }
+func (svg *SVG) MaskEnd() { svg.Println(`</mask>`) }
 
 // Shapes
 
 // Circle centered at x,y, with radius r, with optional style.
 // Standard Reference: http://www.w3.org/TR/SVG11/shapes.html#CircleElement
 func (svg *SVG) Circle(x int, y int, r int, s ...string) {
-	svg.printf(`<circle cx="%d" cy="%d" r="%d" %s`, x, y, r, endstyle(s, emptyclose))
+	svg.Printf(`<circle cx="%d" cy="%d" r="%d" %s`, x, y, r, endstyle(s, emptyclose))
 }
 
 // Ellipse centered at x,y, centered at x,y with radii w, and h, with optional style.
 // Standard Reference: http://www.w3.org/TR/SVG11/shapes.html#EllipseElement
 func (svg *SVG) Ellipse(x int, y int, w int, h int, s ...string) {
-	svg.printf(`<ellipse cx="%d" cy="%d" rx="%d" ry="%d" %s`,
+	svg.Printf(`<ellipse cx="%d" cy="%d" rx="%d" ry="%d" %s`,
 		x, y, w, h, endstyle(s, emptyclose))
 }
 
@@ -305,7 +305,7 @@ func (svg *SVG) Polygon(x []int, y []int, s ...string) {
 // Rect draws a rectangle with upper left-hand corner at x,y, with width w, and height h, with optional style
 // Standard Reference: http://www.w3.org/TR/SVG11/shapes.html#RectElement
 func (svg *SVG) Rect(x int, y int, w int, h int, s ...string) {
-	svg.printf(`<rect %s %s`, dim(x, y, w, h), endstyle(s, emptyclose))
+	svg.Printf(`<rect %s %s`, dim(x, y, w, h), endstyle(s, emptyclose))
 }
 
 // CenterRect draws a rectangle with its center at x,y, with width w, and height h, with optional style
@@ -319,7 +319,7 @@ func (svg *SVG) CenterRect(x int, y int, w int, h int, s ...string) {
 // Style is optional.
 // Standard Reference: http://www.w3.org/TR/SVG11/shapes.html#RectElement
 func (svg *SVG) Roundrect(x int, y int, w int, h int, rx int, ry int, s ...string) {
-	svg.printf(`<rect %s rx="%d" ry="%d" %s`, dim(x, y, w, h), rx, ry, endstyle(s, emptyclose))
+	svg.Printf(`<rect %s rx="%d" ry="%d" %s`, dim(x, y, w, h), rx, ry, endstyle(s, emptyclose))
 }
 
 // Square draws a square with upper left corner at x,y with sides of length l, with optional style.
@@ -331,7 +331,7 @@ func (svg *SVG) Square(x int, y int, l int, s ...string) {
 
 // Path draws an arbitrary path, the caller is responsible for structuring the path data
 func (svg *SVG) Path(d string, s ...string) {
-	svg.printf(`<path d="%s" %s`, d, endstyle(s, emptyclose))
+	svg.Printf(`<path d="%s" %s`, d, endstyle(s, emptyclose))
 }
 
 // Arc draws an elliptical arc, with optional style, beginning coordinate at sx,sy, ending coordinate at ex, ey
@@ -342,7 +342,7 @@ func (svg *SVG) Path(d string, s ...string) {
 // otherwise the arc sweep is less than 180 degrees
 // http://www.w3.org/TR/SVG11/paths.html#PathDataEllipticalArcCommands
 func (svg *SVG) Arc(sx int, sy int, ax int, ay int, r int, large bool, sweep bool, ex int, ey int, s ...string) {
-	svg.printf(`%s A%s %d %s %s %s" %s`,
+	svg.Printf(`%s A%s %d %s %s %s" %s`,
 		ptag(sx, sy), coord(ax, ay), r, onezero(large), onezero(sweep), coord(ex, ey), endstyle(s, emptyclose))
 }
 
@@ -350,7 +350,7 @@ func (svg *SVG) Arc(sx int, sy int, ax int, ay int, r int, large bool, sweep boo
 // with control points at cx,cy and px,py.
 // Standard Reference: http://www.w3.org/TR/SVG11/paths.html#PathDataCubicBezierCommands
 func (svg *SVG) Bezier(sx int, sy int, cx int, cy int, px int, py int, ex int, ey int, s ...string) {
-	svg.printf(`%s C%s %s %s" %s`,
+	svg.Printf(`%s C%s %s %s" %s`,
 		ptag(sx, sy), coord(cx, cy), coord(px, py), coord(ex, ey), endstyle(s, emptyclose))
 }
 
@@ -358,7 +358,7 @@ func (svg *SVG) Bezier(sx int, sy int, cx int, cy int, px int, py int, ex int, e
 // beginning at sx,sy, ending at ex, sy with control points at cx, cy
 // Standard Reference: http://www.w3.org/TR/SVG11/paths.html#PathDataQuadraticBezierCommands
 func (svg *SVG) Qbez(sx int, sy int, cx int, cy int, ex int, ey int, s ...string) {
-	svg.printf(`%s Q%s %s" %s`,
+	svg.Printf(`%s Q%s %s" %s`,
 		ptag(sx, sy), coord(cx, cy), coord(ex, ey), endstyle(s, emptyclose))
 }
 
@@ -366,7 +366,7 @@ func (svg *SVG) Qbez(sx int, sy int, cx int, cy int, ex int, ey int, s ...string
 // with control points are at cx,cy, ex,ey.
 // Standard Reference: http://www.w3.org/TR/SVG11/paths.html#PathDataQuadraticBezierCommands
 func (svg *SVG) Qbezier(sx int, sy int, cx int, cy int, ex int, ey int, tx int, ty int, s ...string) {
-	svg.printf(`%s Q%s %s T%s" %s`,
+	svg.Printf(`%s Q%s %s T%s" %s`,
 		ptag(sx, sy), coord(cx, cy), coord(ex, ey), coord(tx, ty), endstyle(s, emptyclose))
 }
 
@@ -375,7 +375,7 @@ func (svg *SVG) Qbezier(sx int, sy int, cx int, cy int, ex int, ey int, tx int, 
 // Line draws a straight line between two points, with optional style.
 // Standard Reference: http://www.w3.org/TR/SVG11/shapes.html#LineElement
 func (svg *SVG) Line(x1 int, y1 int, x2 int, y2 int, s ...string) {
-	svg.printf(`<line x1="%d" y1="%d" x2="%d" y2="%d" %s`, x1, y1, x2, y2, endstyle(s, emptyclose))
+	svg.Printf(`<line x1="%d" y1="%d" x2="%d" y2="%d" %s`, x1, y1, x2, y2, endstyle(s, emptyclose))
 }
 
 // Polyline draws connected lines between coordinates, with optional style.
@@ -388,23 +388,30 @@ func (svg *SVG) Polyline(x []int, y []int, s ...string) {
 // width w, and height h, referenced at link, with optional style.
 // Standard Reference: http://www.w3.org/TR/SVG11/struct.html#ImageElement
 func (svg *SVG) Image(x int, y int, w int, h int, link string, s ...string) {
-	svg.printf(`<image %s %s %s`, dim(x, y, w, h), href(link), endstyle(s, emptyclose))
+	svg.Printf(`<image %s %s %s`, dim(x, y, w, h), href(link), endstyle(s, emptyclose))
 }
 
 // Text places the specified text, t at x,y according to the style specified in s
 // Standard Reference: http://www.w3.org/TR/SVG11/text.html#TextElement
 func (svg *SVG) Text(x int, y int, t string, s ...string) {
-	svg.printf(`<text %s %s`, loc(x, y), endstyle(s, ">"))
+	svg.Printf(`<text %s %s`, loc(x, y), endstyle(s, ">"))
 	xml.Escape(svg.Writer, []byte(t))
-	svg.println(`</text>`)
+	svg.Println(`</text>`)
+}
+
+// Tspan https://www.w3.org/TR/SVG11/text.html#TSpanElement.
+func (svg *SVG) TSpan(t string, s ...string) {
+	svg.Printf(`<tspan %s`, endstyle(s, ">"))
+	xml.Escape(svg.Writer, []byte(t))
+	svg.Println(`</tspan>`)
 }
 
 // Textpath places text optionally styled text along a previously defined path
 // Standard Reference: http://www.w3.org/TR/SVG11/text.html#TextPathElement
 func (svg *SVG) Textpath(t string, pathid string, s ...string) {
-	svg.printf("<text %s<textPath xlink:href=\"%s\">", endstyle(s, ">"), pathid)
+	svg.Printf("<text %s<textPath xlink:href=\"%s\">", endstyle(s, ">"), pathid)
 	xml.Escape(svg.Writer, []byte(t))
-	svg.println(`</textPath></text>`)
+	svg.Println(`</textPath></text>`)
 }
 
 // Textlines places a series of lines of text starting at x,y, at the specified size, fill, and alignment.
@@ -437,10 +444,10 @@ func (svg *SVG) RGBA(r int, g int, b int, a float64) string {
 // along the vector defined by (x1,y1), and (x2,y2).
 // The stop color sequence defined in sc. Coordinates are expressed as percentages.
 func (svg *SVG) LinearGradient(id string, x1, y1, x2, y2 uint8, sc []Offcolor) {
-	svg.printf("<linearGradient id=\"%s\" x1=\"%d%%\" y1=\"%d%%\" x2=\"%d%%\" y2=\"%d%%\">\n",
+	svg.Printf("<linearGradient id=\"%s\" x1=\"%d%%\" y1=\"%d%%\" x2=\"%d%%\" y2=\"%d%%\">\n",
 		id, pct(x1), pct(y1), pct(x2), pct(y2))
 	svg.stopcolor(sc)
-	svg.println("</linearGradient>")
+	svg.Println("</linearGradient>")
 }
 
 // RadialGradient constructs a radial color gradient identified by id,
@@ -449,17 +456,17 @@ func (svg *SVG) LinearGradient(id string, x1, y1, x2, y2 uint8, sc []Offcolor) {
 // The stop color sequence defined in sc.
 // Coordinates are expressed as percentages.
 func (svg *SVG) RadialGradient(id string, cx, cy, r, fx, fy uint8, sc []Offcolor) {
-	svg.printf("<radialGradient id=\"%s\" cx=\"%d%%\" cy=\"%d%%\" r=\"%d%%\" fx=\"%d%%\" fy=\"%d%%\">\n",
+	svg.Printf("<radialGradient id=\"%s\" cx=\"%d%%\" cy=\"%d%%\" r=\"%d%%\" fx=\"%d%%\" fy=\"%d%%\">\n",
 		id, pct(cx), pct(cy), pct(r), pct(fx), pct(fy))
 	svg.stopcolor(sc)
-	svg.println("</radialGradient>")
+	svg.Println("</radialGradient>")
 }
 
 // stopcolor is a utility function used by the gradient functions
 // to define a sequence of offsets (expressed as percentages) and colors
 func (svg *SVG) stopcolor(oc []Offcolor) {
 	for _, v := range oc {
-		svg.printf("<stop offset=\"%d%%\" stop-color=\"%s\" stop-opacity=\"%.2f\"/>\n",
+		svg.Printf("<stop offset=\"%d%%\" stop-color=\"%s\" stop-opacity=\"%.2f\"/>\n",
 			pct(v.Offset), v.Color, v.Opacity)
 	}
 }
@@ -471,13 +478,13 @@ func (svg *SVG) stopcolor(oc []Offcolor) {
 // Filter begins a filter set
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#FilterElement
 func (svg *SVG) Filter(id string, s ...string) {
-	svg.printf(`<filter id="%s" %s`, id, endstyle(s, ">\n"))
+	svg.Printf(`<filter id="%s" %s`, id, endstyle(s, ">\n"))
 }
 
 // Fend ends a filter set
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#FilterElement
 func (svg *SVG) Fend() {
-	svg.println(`</filter>`)
+	svg.Println(`</filter>`)
 }
 
 // FeBlend specifies a Blend filter primitive
@@ -489,18 +496,18 @@ func (svg *SVG) FeBlend(fs Filterspec, mode string, s ...string) {
 	default:
 		mode = "normal"
 	}
-	svg.printf(`<feBlend %s mode="%s" %s`,
+	svg.Printf(`<feBlend %s mode="%s" %s`,
 		fsattr(fs), mode, endstyle(s, emptyclose))
 }
 
 // FeColorMatrix specifies a color matrix filter primitive, with matrix values
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feColorMatrixElement
 func (svg *SVG) FeColorMatrix(fs Filterspec, values [20]float64, s ...string) {
-	svg.printf(`<feColorMatrix %s type="matrix" values="`, fsattr(fs))
+	svg.Printf(`<feColorMatrix %s type="matrix" values="`, fsattr(fs))
 	for _, v := range values {
-		svg.printf(`%g `, v)
+		svg.Printf(`%g `, v)
 	}
-	svg.printf(`" %s`, endstyle(s, emptyclose))
+	svg.Printf(`" %s`, endstyle(s, emptyclose))
 }
 
 // FeColorMatrixHue specifies a color matrix filter primitive, with hue rotation values
@@ -509,7 +516,7 @@ func (svg *SVG) FeColorMatrixHue(fs Filterspec, value float64, s ...string) {
 	if value < -360 || value > 360 {
 		value = 0
 	}
-	svg.printf(`<feColorMatrix %s type="hueRotate" values="%g" %s`,
+	svg.Printf(`<feColorMatrix %s type="hueRotate" values="%g" %s`,
 		fsattr(fs), value, endstyle(s, emptyclose))
 }
 
@@ -519,27 +526,27 @@ func (svg *SVG) FeColorMatrixSaturate(fs Filterspec, value float64, s ...string)
 	if value < 0 || value > 1 {
 		value = 1
 	}
-	svg.printf(`<feColorMatrix %s type="saturate" values="%g" %s`,
+	svg.Printf(`<feColorMatrix %s type="saturate" values="%g" %s`,
 		fsattr(fs), value, endstyle(s, emptyclose))
 }
 
 // FeColorMatrixLuminence specifies a color matrix filter primitive, with luminence values
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feColorMatrixElement
 func (svg *SVG) FeColorMatrixLuminence(fs Filterspec, s ...string) {
-	svg.printf(`<feColorMatrix %s type="luminenceToAlpha" %s`,
+	svg.Printf(`<feColorMatrix %s type="luminenceToAlpha" %s`,
 		fsattr(fs), endstyle(s, emptyclose))
 }
 
 // FeComponentTransfer begins a feComponent filter element
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feComponentTransferElement
 func (svg *SVG) FeComponentTransfer() {
-	svg.println(`<feComponentTransfer>`)
+	svg.Println(`<feComponentTransfer>`)
 }
 
 // FeCompEnd ends a feComponent filter element
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feComponentTransferElement
 func (svg *SVG) FeCompEnd() {
-	svg.println(`</feComponentTransfer>`)
+	svg.Println(`</feComponentTransfer>`)
 }
 
 // FeComposite specifies a feComposite filter primitive
@@ -551,14 +558,14 @@ func (svg *SVG) FeComposite(fs Filterspec, operator string, k1, k2, k3, k4 int, 
 	default:
 		operator = "over"
 	}
-	svg.printf(`<feComposite %s operator="%s" k1="%d" k2="%d" k3="%d" k4="%d" %s`,
+	svg.Printf(`<feComposite %s operator="%s" k1="%d" k2="%d" k3="%d" k4="%d" %s`,
 		fsattr(fs), operator, k1, k2, k3, k4, endstyle(s, emptyclose))
 }
 
 // FeConvolveMatrix specifies a feConvolveMatrix filter primitive
 // Standard referencd: http://www.w3.org/TR/SVG11/filters.html#feConvolveMatrixElement
 func (svg *SVG) FeConvolveMatrix(fs Filterspec, matrix [9]int, s ...string) {
-	svg.printf(`<feConvolveMatrix %s kernelMatrix="%d %d %d %d %d %d %d %d %d" %s`,
+	svg.Printf(`<feConvolveMatrix %s kernelMatrix="%d %d %d %d %d %d %d %d %d" %s`,
 		fsattr(fs),
 		matrix[0], matrix[1], matrix[2],
 		matrix[3], matrix[4], matrix[5],
@@ -569,34 +576,34 @@ func (svg *SVG) FeConvolveMatrix(fs Filterspec, matrix [9]int, s ...string) {
 // a container for light source elements, end with DiffuseEnd()
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feComponentTransferElement
 func (svg *SVG) FeDiffuseLighting(fs Filterspec, scale, constant float64, s ...string) {
-	svg.printf(`<feDiffuseLighting %s surfaceScale="%g" diffuseConstant="%g" %s`,
+	svg.Printf(`<feDiffuseLighting %s surfaceScale="%g" diffuseConstant="%g" %s`,
 		fsattr(fs), scale, constant, endstyle(s, `>`))
 }
 
 // FeDiffEnd ends a diffuse lighting filter primitive container
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feDiffuseLightingElement
 func (svg *SVG) FeDiffEnd() {
-	svg.println(`</feDiffuseLighting>`)
+	svg.Println(`</feDiffuseLighting>`)
 }
 
 // FeDisplacementMap specifies a feDisplacementMap filter primitive
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feDisplacementMapElement
 func (svg *SVG) FeDisplacementMap(fs Filterspec, scale float64, xchannel, ychannel string, s ...string) {
-	svg.printf(`<feDisplacementMap %s scale="%g" xChannelSelector="%s" yChannelSelector="%s" %s`,
+	svg.Printf(`<feDisplacementMap %s scale="%g" xChannelSelector="%s" yChannelSelector="%s" %s`,
 		fsattr(fs), scale, imgchannel(xchannel), ychannel, endstyle(s, emptyclose))
 }
 
 // FeDistantLight specifies a feDistantLight filter primitive
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feDistantLightElement
 func (svg *SVG) FeDistantLight(fs Filterspec, azimuth, elevation float64, s ...string) {
-	svg.printf(`<feDistantLight %s azimuth="%g" elevation="%g" %s`,
+	svg.Printf(`<feDistantLight %s azimuth="%g" elevation="%g" %s`,
 		fsattr(fs), azimuth, elevation, endstyle(s, emptyclose))
 }
 
 // FeFlood specifies a flood filter primitive
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feFloodElement
 func (svg *SVG) FeFlood(fs Filterspec, color string, opacity float64, s ...string) {
-	svg.printf(`<feFlood %s flood-fill-color="%s" flood-fill-opacity="%g" %s`,
+	svg.Printf(`<feFlood %s flood-fill-color="%s" flood-fill-opacity="%g" %s`,
 		fsattr(fs), color, opacity, endstyle(s, emptyclose))
 }
 
@@ -606,28 +613,28 @@ func (svg *SVG) FeFlood(fs Filterspec, color string, opacity float64, s ...strin
 // FeFuncLinear specifies a linear style function for the feFunc{R|G|B|A} filter element
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feComponentTransferElement
 func (svg *SVG) FeFuncLinear(channel string, slope, intercept float64) {
-	svg.printf(`<feFunc%s type="linear" slope="%g" intercept="%g"%s`,
+	svg.Printf(`<feFunc%s type="linear" slope="%g" intercept="%g"%s`,
 		imgchannel(channel), slope, intercept, emptyclose)
 }
 
 // FeFuncGamma specifies the curve values for gamma correction for the feFunc{R|G|B|A} filter element
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feComponentTransferElement
 func (svg *SVG) FeFuncGamma(channel string, amplitude, exponent, offset float64) {
-	svg.printf(`<feFunc%s type="gamma" amplitude="%g" exponent="%g" offset="%g"%s`,
+	svg.Printf(`<feFunc%s type="gamma" amplitude="%g" exponent="%g" offset="%g"%s`,
 		imgchannel(channel), amplitude, exponent, offset, emptyclose)
 }
 
 // FeFuncTable specifies the table of values for the feFunc{R|G|B|A} filter element
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feComponentTransferElement
 func (svg *SVG) FeFuncTable(channel string, tv []float64) {
-	svg.printf(`<feFunc%s type="table"`, imgchannel(channel))
+	svg.Printf(`<feFunc%s type="table"`, imgchannel(channel))
 	svg.tablevalues(`tableValues`, tv)
 }
 
 // FeFuncDiscrete specifies the discrete values for the feFunc{R|G|B|A} filter element
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feComponentTransferElement
 func (svg *SVG) FeFuncDiscrete(channel string, tv []float64) {
-	svg.printf(`<feFunc%s type="discrete"`, imgchannel(channel))
+	svg.Printf(`<feFunc%s type="discrete"`, imgchannel(channel))
 	svg.tablevalues(`tableValues`, tv)
 }
 
@@ -640,25 +647,25 @@ func (svg *SVG) FeGaussianBlur(fs Filterspec, stdx, stdy float64, s ...string) {
 	if stdy < 0 {
 		stdy = 0
 	}
-	svg.printf(`<feGaussianBlur %s stdDeviation="%g %g" %s`,
+	svg.Printf(`<feGaussianBlur %s stdDeviation="%g %g" %s`,
 		fsattr(fs), stdx, stdy, endstyle(s, emptyclose))
 }
 
 // FeImage specifies a feImage filter primitive
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feImageElement
 func (svg *SVG) FeImage(href string, result string, s ...string) {
-	svg.printf(`<feImage xlink:href="%s" result="%s" %s`,
+	svg.Printf(`<feImage xlink:href="%s" result="%s" %s`,
 		href, result, endstyle(s, emptyclose))
 }
 
 // FeMerge specifies a feMerge filter primitive, containing feMerge elements
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feMergeElement
 func (svg *SVG) FeMerge(nodes []string, s ...string) {
-	svg.println(`<feMerge>`)
+	svg.Println(`<feMerge>`)
 	for _, n := range nodes {
-		svg.printf("<feMergeNode in=\"%s\"/>\n", n)
+		svg.Printf("<feMergeNode in=\"%s\"/>\n", n)
 	}
-	svg.println(`</feMerge>`)
+	svg.Println(`</feMerge>`)
 }
 
 // FeMorphology specifies a feMorphologyLight filter primitive
@@ -670,21 +677,21 @@ func (svg *SVG) FeMorphology(fs Filterspec, operator string, xradius, yradius fl
 	default:
 		operator = "erode"
 	}
-	svg.printf(`<feMorphology %s operator="%s" radius="%g %g" %s`,
+	svg.Printf(`<feMorphology %s operator="%s" radius="%g %g" %s`,
 		fsattr(fs), operator, xradius, yradius, endstyle(s, emptyclose))
 }
 
 // FeOffset specifies the feOffset filter primitive
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feOffsetElement
 func (svg *SVG) FeOffset(fs Filterspec, dx, dy int, s ...string) {
-	svg.printf(`<feOffset %s dx="%d" dy="%d" %s`,
+	svg.Printf(`<feOffset %s dx="%d" dy="%d" %s`,
 		fsattr(fs), dx, dy, endstyle(s, emptyclose))
 }
 
 // FePointLight specifies a fePpointLight filter primitive
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#fePointLightElement
 func (svg *SVG) FePointLight(x, y, z float64, s ...string) {
-	svg.printf(`<fePointLight x="%g" y="%g" z="%g" %s`,
+	svg.Printf(`<fePointLight x="%g" y="%g" z="%g" %s`,
 		x, y, z, endstyle(s, emptyclose))
 }
 
@@ -692,27 +699,27 @@ func (svg *SVG) FePointLight(x, y, z float64, s ...string) {
 // a container for light source elements, end with SpecularEnd()
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feSpecularLightingElement
 func (svg *SVG) FeSpecularLighting(fs Filterspec, scale, constant float64, exponent int, color string, s ...string) {
-	svg.printf(`<feSpecularLighting %s surfaceScale="%g" specularConstant="%g" specularExponent="%d" lighting-color="%s" %s`,
+	svg.Printf(`<feSpecularLighting %s surfaceScale="%g" specularConstant="%g" specularExponent="%d" lighting-color="%s" %s`,
 		fsattr(fs), scale, constant, exponent, color, endstyle(s, ">\n"))
 }
 
 // FeSpecEnd ends a specular lighting filter primitive container
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feSpecularLightingElement
 func (svg *SVG) FeSpecEnd() {
-	svg.println(`</feSpecularLighting>`)
+	svg.Println(`</feSpecularLighting>`)
 }
 
 // FeSpotLight specifies a feSpotLight filter primitive
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feSpotLightElement
 func (svg *SVG) FeSpotLight(fs Filterspec, x, y, z, px, py, pz float64, s ...string) {
-	svg.printf(`<feSpotLight %s x="%g" y="%g" z="%g" pointsAtX="%g" pointsAtY="%g" pointsAtZ="%g" %s`,
+	svg.Printf(`<feSpotLight %s x="%g" y="%g" z="%g" pointsAtX="%g" pointsAtY="%g" pointsAtZ="%g" %s`,
 		fsattr(fs), x, y, z, px, py, pz, endstyle(s, emptyclose))
 }
 
 // FeTile specifies the tile utility filter primitive
 // Standard reference: http://www.w3.org/TR/SVG11/filters.html#feTileElement
 func (svg *SVG) FeTile(fs Filterspec, in string, s ...string) {
-	svg.printf(`<feTile %s %s`, fsattr(fs), endstyle(s, emptyclose))
+	svg.Printf(`<feTile %s %s`, fsattr(fs), endstyle(s, emptyclose))
 }
 
 // FeTurbulence specifies a turbulence filter primitive
@@ -739,7 +746,7 @@ func (svg *SVG) FeTurbulence(fs Filterspec, ftype string, bfx, bfy float64, octa
 	} else {
 		ss = "noStitch"
 	}
-	svg.printf(`<feTurbulence %s type="%s" baseFrequency="%.2f %.2f" numOctaves="%d" seed="%d" stitchTiles="%s" %s`,
+	svg.Printf(`<feTurbulence %s type="%s" baseFrequency="%.2f %.2f" numOctaves="%d" seed="%d" stitchTiles="%s" %s`,
 		fsattr(fs), ftype, bfx, bfy, octaves, seed, ss, endstyle(s, emptyclose))
 }
 
@@ -835,16 +842,16 @@ func style(s string) string {
 
 // pp returns a series of polygon points
 func (svg *SVG) pp(x []int, y []int, tag string) {
-	svg.print(tag)
+	svg.Print(tag)
 	if len(x) != len(y) {
-		svg.print(" ")
+		svg.Print(" ")
 		return
 	}
 	lx := len(x) - 1
 	for i := 0; i < lx; i++ {
-		svg.print(coord(x[i], y[i]) + " ")
+		svg.Print(coord(x[i], y[i]) + " ")
 	}
-	svg.print(coord(x[lx], y[lx]))
+	svg.Print(coord(x[lx], y[lx]))
 }
 
 // endstyle modifies an SVG object, with either a series of name="value" pairs,
@@ -867,15 +874,15 @@ func endstyle(s []string, endtag string) string {
 
 // tt creates a xml element, tag containing s
 func (svg *SVG) tt(tag string, s string) {
-	svg.print("<" + tag + ">")
+	svg.Print("<" + tag + ">")
 	xml.Escape(svg.Writer, []byte(s))
-	svg.println("</" + tag + ">")
+	svg.Println("</" + tag + ">")
 }
 
 // poly compiles the polygon element
 func (svg *SVG) poly(x []int, y []int, tag string, s ...string) {
 	svg.pp(x, y, "<"+tag+" points=\"")
-	svg.print(`" ` + endstyle(s, "/>\n"))
+	svg.Print(`" ` + endstyle(s, "/>\n"))
 }
 
 // onezero returns "0" or "1"
@@ -955,11 +962,11 @@ func fsattr(s Filterspec) string {
 
 // tablevalues outputs a series of values as a XML attribute
 func (svg *SVG) tablevalues(s string, t []float64) {
-	svg.printf(` %s="`, s)
+	svg.Printf(` %s="`, s)
 	for i := 0; i < len(t)-1; i++ {
-		svg.printf("%g ", t[i])
+		svg.Printf("%g ", t[i])
 	}
-	svg.printf(`%g"%s`, t[len(t)-1], emptyclose)
+	svg.Printf(`%g"%s`, t[len(t)-1], emptyclose)
 }
 
 // imgchannel validates the image channel indicator
